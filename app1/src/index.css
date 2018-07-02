@@ -1,0 +1,14 @@
+.notification {
+  border: solid 1px black;
+  border-radius: 5px;
+  padding: 0.5em;
+  font-size: 1.5em;
+}
+
+.notification.info {
+  background: #cfa;
+}
+
+.notification.error {
+  background: #fca;
+}

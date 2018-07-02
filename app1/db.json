@@ -1,0 +1,19 @@
+{
+  "persons": [
+    {
+      "name": "Martti Tienari",
+      "number": "040-1234568",
+      "id": 1
+    },
+    {
+      "name": "Arto Järvinen",
+      "number": "040-5228748",
+      "id": 2
+    },
+    {
+      "name": "Aarne Tenkanen",
+      "number": "040-9876544",
+      "id": 3
+    }
+  ]
+}
