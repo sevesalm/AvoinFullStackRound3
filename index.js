@@ -7,7 +7,7 @@ const Person = require("./models/person");
 app.use(bodyParser.json());
 app.use(express.static("build"));
 
-morgan.token("body", (req, res) => JSON.stringify(req.body));
+morgan.token("body", (req, _) => JSON.stringify(req.body));
 app.use(
   morgan(":method :url :body :status :res[content-length] - :response-time ms")
 );
@@ -85,7 +85,7 @@ app.put(apiBase + "/persons/:id", (req, res) => {
 app.delete(apiBase + "/persons/:id", (req, res) => {
   Person.findByIdAndRemove(req.params.id)
     .then(() => res.status(204).end())
-    .catch(() => response.status(400).send({ error: "malformatted id" }));
+    .catch(() => res.status(400).send({ error: "malformatted id" }));
 });
 
 const PORT = process.env.PORT || 3001;
