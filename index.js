@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
+const Person = require("./models/person");
+
 app.use(bodyParser.json());
 app.use(express.static("build"));
 
@@ -12,53 +14,34 @@ app.use(
 
 const apiBase = "/api";
 
-let persons = [
-  {
-    name: "Arto Hellas",
-    number: "040-123456",
-    id: 1
-  },
-  {
-    name: "Martti Tienari",
-    number: "040-123456",
-    id: 2
-  },
-  {
-    name: "Arto Järvinen",
-    number: "040-123456",
-    id: 3
-  },
-  {
-    name: "Lea Kutvonen",
-    number: "040-123456",
-    id: 4
-  }
-];
-
 app.get(apiBase + "/persons", (req, res) => {
-  return res.json(persons);
+  Person.find()
+    .then(persons => persons.map(Person.format))
+    .then(formattedPersons => res.json(formattedPersons))
+    .catch(err => console.log(err));
 });
 
 app.get(apiBase + "/persons/:id", (req, res) => {
-  const person = persons.find(item => item.id === Number(req.params.id));
-  if (person) {
-    return res.json(person);
-  } else {
-    return res.status(404).end();
-  }
+  Person.findById(req.params.id)
+    .then(
+      person =>
+        person ? res.json(Person.format(person)) : res.status(404).end()
+    )
+    .catch(err => {
+      console.log(err);
+      res.status(400).send({ error: "malformatted id" });
+    });
 });
 
 app.get(apiBase + "/info", (req, res) => {
-  const recordCount = persons.length;
   const date = new Date().toString();
-
-  return res.send(
-    `<p>Puhelinluettelossa ${recordCount} henkilön tiedot</p><p>${date}</p>`
+  Person.count().then(count =>
+    res.send(`<p>Puhelinluettelossa ${count} henkilön tiedot</p><p>${date}</p>`)
   );
 });
 
 app.post(apiBase + "/persons", (req, res) => {
-  const newRecord = { ...req.body };
+  const newRecord = req.body;
 
   if (newRecord.name == null) {
     return res.status(400).json({ message: "Missing name" });
@@ -67,21 +50,42 @@ app.post(apiBase + "/persons", (req, res) => {
     return res.status(400).json({ message: "Missing number" });
   }
 
-  if (persons.find(item => item.name == newRecord.name)) {
-    // Code 409 might also be considered here
-    return res.status(400).json({ message: "Name already exists" });
-  }
+  return Person.find({ name: newRecord.name }).then(result => {
+    console.log(result);
+    if (!result.length) {
+      const person = new Person(newRecord);
+      person
+        .save()
+        .then(savedPerson => res.json(Person.format(savedPerson)))
+        .catch(err => console.log(err));
+    } else {
+      return res.status(400).json({ message: "Name already exists" });
+    }
+  });
+});
 
-  newRecord.id = Math.floor(Math.random() * 1000000000);
-  persons.push(newRecord);
-  res.json(newRecord);
+app.put(apiBase + "/persons/:id", (req, res) => {
+  const { name, number } = req.body;
+
+  const newRecord = { name, number };
+
+  Person.findByIdAndUpdate(req.params.id, newRecord, { new: true })
+    .then(
+      updatedPerson =>
+        updatedPerson
+          ? res.json(Person.format(updatedPerson))
+          : res.status(404).end()
+    )
+    .catch(err => {
+      console.log(err);
+      res.status(400).send({ error: "malformatted id" });
+    });
 });
 
 app.delete(apiBase + "/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  persons = persons.filter(item => item.id !== id);
-
-  res.status(204).end();
+  Person.findByIdAndRemove(req.params.id)
+    .then(() => res.status(204).end())
+    .catch(() => response.status(400).send({ error: "malformatted id" }));
 });
 
 const PORT = process.env.PORT || 3001;
