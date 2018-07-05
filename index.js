@@ -33,7 +33,7 @@ app.get(apiBase + "/persons/:id", (req, res) => {
     });
 });
 
-app.get(apiBase + "/info", (req, res) => {
+app.get("/info", (req, res) => {
   const date = new Date().toString();
   Person.count().then(count =>
     res.send(`<p>Puhelinluettelossa ${count} henkilön tiedot</p><p>${date}</p>`)
