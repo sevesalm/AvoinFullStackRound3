@@ -95,8 +95,6 @@ class App extends React.Component {
 
   handleDelete = id => {
     persist.delete(id).then(data => {
-      console.log(data);
-
       this.setState({
         persons: this.state.persons.filter(item => item.id !== id),
         notification: { message: `Deleted a record of id ${id}`, type: 0 }
